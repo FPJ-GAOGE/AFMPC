@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#092333">
+  <title>AFMPC — Underwater Visual Target Tracking</title>
+  <meta name="description" content="Target-specific depth estimation meets adaptive model-fusion predictive control. Explore the AFMPC paper, real-pool demonstration, method and experimental results.">
+  <link rel="canonical" href="https://fpj-gaoge.github.io/AFMPC/">
+  <meta property="og:title" content="AFMPC — Underwater Visual Target Tracking">
+  <meta property="og:description" content="Stereo perception and adaptive prediction for underwater targets that move, turn and stop.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://fpj-gaoge.github.io/AFMPC/">
+  <meta property="og:image" content="https://fpj-gaoge.github.io/AFMPC/assets/task-preview.jpg">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="ocean.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="#top" aria-label="AFMPC home">AFMPC<span class="wordmark-dot"></span></a>
+  <nav class="primary-nav" id="navigation" aria-label="Main navigation">
+    <a href="#top">Task</a><a href="#method">Method</a><a href="#demo">Experiments</a><a href="#results">Results</a><a href="#citation">Paper</a>
+  </nav>
+  <div class="header-actions">
+    <button class="icon-button" id="theme-toggle" aria-label="Switch to dark theme" title="Toggle color theme"><svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.2A8.4 8.4 0 0 1 9.8 4 8.5 8.5 0 1 0 20 14.2Z"/></svg><svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg></button>
+    <button class="icon-button menu-toggle" id="menu-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  </div>
+</header>
+<section class="hero ocean-hero" id="top" aria-labelledby="project-name">
+  <div class="ocean-layout">
+    <div class="ocean-copy">
+      <p class="eyebrow">Underwater robotics / Visual servoing</p>
+      <p class="project-label">AFMPC <span>Adaptive model-fusion predictive control</span></p>
+      <h1 id="project-name">Visual tracking.<br><span>Beneath the surface.</span></h1>
+      <p class="hero-summary">Follow a moving underwater target with reliable depth estimation and a prediction that adapts when motion changes.</p>
+      <div class="hero-links"><a class="button button-white" href="#method">Explore the method <span aria-hidden="true">↓</span></a><a class="button button-glass" href="#demo">Watch the experiments <span aria-hidden="true">↗</span></a></div>
+      <div class="hero-key"><span><i></i> Stereo perception</span><span><i></i> Adaptive prediction</span><span><i></i> Closed-loop control</span></div>
+    </div>
+    <figure class="task-drawing" id="task-drawing" data-stage="perceive">
+      <div class="drawing-top"><span>THE TRACKING TASK</span><span>CONCEPTUAL / TOP VIEW</span></div>
+      <svg viewBox="0 0 680 440" role="img" aria-labelledby="task-title task-description">
+        <title id="task-title">An underwater robot follows a fish-shaped target</title>
+        <desc id="task-description">A stereo camera observes the target inside its field of view. Target-specific depth estimation reconstructs relative position. Adaptive prediction and control steer the robot while maintaining a reference following distance. This is a conceptual illustration, not experimental data.</desc>
+        <defs>
+          <pattern id="sea-grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#7bb6cd" stroke-opacity=".08"/></pattern>
+          <linearGradient id="fov-fill" x1="0" x2="1"><stop stop-color="#59dbc8" stop-opacity=".03"/><stop offset="1" stop-color="#59dbc8" stop-opacity=".14"/></linearGradient>
+          <marker id="arrow-aqua" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M1 1L9 5L1 9" fill="none" stroke="#70e5d2" stroke-width="1.5"/></marker>
+          <marker id="arrow-coral" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1L9 5L1 9" fill="none" stroke="#ffad8f" stroke-width="1.5"/></marker>
+        </defs>
+        <rect width="680" height="440" fill="url(#sea-grid)"/>
+        <g fill="none" stroke="#45738a" stroke-width="1" opacity=".28"><path d="M-40 96C90 35 140 130 276 69S480 48 720 4"/><path d="M-40 113C90 52 140 147 276 86S480 65 720 21"/><path d="M-40 130C90 69 140 164 276 103S480 82 720 38"/><path d="M-30 395C127 311 250 435 423 367S618 311 730 355"/><path d="M-30 412C127 328 250 452 423 384S618 328 730 372"/></g>
+        <g class="scene-layer layer-perceive"><path d="M271 233L553 97Q609 230 553 353Z" fill="url(#fov-fill)" stroke="#67cfcb" stroke-opacity=".5" stroke-dasharray="5 7"/><text x="425" y="112" class="svg-small" transform="rotate(-25 425 112)">CAMERA FIELD OF VIEW</text></g>
+        <g class="scene-layer layer-follow" fill="none" stroke="#70e5d2" stroke-width="2"><path d="M57 292C94 294 100 250 136 249" stroke-dasharray="5 8"/><path d="M279 290C358 326 390 259 435 249" marker-end="url(#arrow-aqua)"/><text x="308" y="327" class="svg-label">Robot response</text></g>
+        <g class="robot-lines" stroke="#bce7ed" stroke-width="2.4" fill="#103346" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M144 203L170 175H243L269 203V270L243 293H170L144 269Z"/>
+          <path d="M170 175V293M243 175V293" stroke="#5a8e9f"/>
+          <rect x="167" y="206" width="79" height="57" rx="20" fill="#1a4d60"/>
+          <path d="M187 215H224M187 253H224" stroke="#70e5d2"/>
+          <rect x="134" y="183" width="38" height="24" rx="10"/><rect x="134" y="266" width="38" height="24" rx="10"/>
+          <rect x="237" y="183" width="38" height="24" rx="10"/><rect x="237" y="266" width="38" height="24" rx="10"/>
+          <path d="M145 188L160 202M160 188L145 202M145 271L160 285M160 271L145 285M248 188L263 202M263 188L248 202M248 271L263 285M263 271L248 285" stroke-width="1.4"/>
+          <path d="M270 218H282V247H270" fill="#70e5d2" stroke="#70e5d2"/><circle cx="278" cy="225" r="3" fill="#09283c" stroke="none"/><circle cx="278" cy="240" r="3" fill="#09283c" stroke="none"/>
+        </g>
+        <path d="M201 180V141H110" fill="none" stroke="#6d9fb0"/><text x="69" y="129" class="svg-label">Underwater robot</text>
+        <path d="M277 253L299 352H204" fill="none" stroke="#6d9fb0"/><text x="163" y="372" class="svg-small">STEREO CAMERA</text>
+        <g class="target-fish" stroke="#ffad8f" stroke-width="2.5" stroke-linejoin="round"><path d="M477 223C501 199 529 203 550 226C529 250 501 251 477 230L461 247V206Z" fill="#5c4242"/><path d="M506 210L519 194L528 214M507 244L520 257L526 241" fill="#5c4242"/><circle cx="538" cy="224" r="2.7" fill="#ffceba" stroke="none"/></g>
+        <g class="scene-layer layer-perceive" fill="none" stroke="#ffad8f" stroke-width="1.7"><path d="M451 205V184H472M539 184H560V205M560 250V271H539M472 271H451V250"/></g>
+        <path d="M554 174C590 151 590 125 617 118" fill="none" stroke="#ffad8f" stroke-width="1.7" stroke-dasharray="5 6" marker-end="url(#arrow-coral)"/>
+        <text x="462" y="156" class="svg-label coral-label">Moving target</text>
+        <g class="scene-layer layer-estimate" fill="none" stroke="#70e5d2"><path d="M290 234H447" stroke-width="1.5" stroke-dasharray="4 5" marker-start="url(#arrow-aqua)" marker-end="url(#arrow-aqua)"/><path d="M281 393H504" stroke-width="1.2" marker-start="url(#arrow-aqua)" marker-end="url(#arrow-aqua)"/><path d="M281 382V404M504 382V404" stroke-opacity=".45"/></g>
+        <text x="335" y="219" class="svg-label aqua-label">Relative depth</text><text x="313" y="420" class="svg-small">REFERENCE FOLLOWING DISTANCE</text>
+        <g fill="#6b99aa" opacity=".6"><circle cx="94" cy="215" r="2"/><circle cx="109" cy="191" r="3"/><circle cx="74" cy="174" r="1.5"/><circle cx="599" cy="295" r="2"/><circle cx="615" cy="281" r="3"/></g>
+      </svg>
+      <figcaption>Track the target’s relative position as it moves, turns and stops.<span>Illustration only · not to scale</span></figcaption>
+    </figure>
+  </div>
+  <div class="task-controls" role="group" aria-label="Explore the tracking loop">
+    <button data-task-stage="perceive" aria-pressed="true"><span class="task-number">01</span><span><strong>Perceive</strong><small>Select the target’s depth</small></span><span aria-hidden="true">↗</span></button>
+    <button data-task-stage="estimate" aria-pressed="false"><span class="task-number">02</span><span><strong>Estimate</strong><small>Reconstruct relative motion</small></span><span aria-hidden="true">↗</span></button>
+    <button data-task-stage="follow" aria-pressed="false"><span class="task-number">03</span><span><strong>Follow</strong><small>Adapt prediction and control</small></span><span aria-hidden="true">↗</span></button>
+  </div>
+  <p class="task-explanation" id="task-explanation" aria-live="polite">Color, disparity and temporal cues select target pixels for a more consistent depth estimate.</p>
+</section>
+
+<main id="main">
+  <section class="overview-band" id="overview" aria-labelledby="overview-heading"><div class="section overview-layout">
+    <div><p class="eyebrow">01 / The challenge</p><h2 id="overview-heading">A clearer target.<br>A more adaptable prediction.</h2></div>
+    <div class="overview-copy"><p class="lead">Underwater tracking has two connected challenges: unreliable visual depth and target motion that changes.</p><p>AFMPC connects stereo perception with adaptive predictive control in a position-based visual-servoing system. A target-depth mask combines color, disparity and temporal consistency. Separate filters stabilize the image center and depth before reconstructing the target’s relative state.</p><p>Yaw regulation is separated from translation. The controller blends stationary-target and moving-target predictions using their historical errors, then computes bounded translational commands. Video replay, simulation and pool trials evaluate the complete system.</p><a class="text-link" href="https://arxiv.org/html/2609.20731v1" target="_blank" rel="noopener noreferrer">Explore the full paper <span aria-hidden="true">↗</span></a></div>
+  </div></section>
+  <section class="section method-section" id="method" aria-labelledby="method-heading">
+    <div class="section-heading"><p class="eyebrow">02 / The approach</p><h2 id="method-heading">From pixels to predictive control.</h2><p class="section-intro">One integrated loop: select reliable observations, reconstruct the relative state, regulate heading and adapt the prediction.</p></div>
+    <div class="architecture-layout">
+      <figure class="paper-figure architecture-figure"><button class="figure-button" data-zoom="assets/figures/fig2.png" data-caption="System architecture · Figure 2 in the paper" aria-label="Enlarge system architecture"><img src="assets/figures/fig2.png" alt="AFMPC architecture: stereo perception and IMU feed relative-state estimation, yaw control, adaptive model fusion and translational MPC." loading="lazy" width="2400" height="2607"><span class="zoom-label">View full figure ↗</span></button><figcaption><span>Figure 2</span> Stereo perception and IMU measurements connect to decoupled yaw regulation and adaptive translational MPC.</figcaption></figure>
+      <ol class="method-steps">
+        <li><span class="step-index">01</span><div><h3>Select reliable target depth</h3><p>Color and disparity cues isolate target pixels within a detection box. Temporal recovery fills gaps when the current-frame overlap becomes sparse.</p><span class="method-tag">Color + disparity + time</span></div></li>
+        <li><span class="step-index">02</span><div><h3>Reconstruct a stable state</h3><p>A Kalman filter estimates depth and depth rate; an α–β filter tracks the image center. Their outputs form the target’s 3D relative position and velocity.</p><span class="method-tag">Separate estimation channels</span></div></li>
+        <li><span class="step-index">03</span><div><h3>Decouple heading and translation</h3><p>A HOLD/TURN state machine and cascaded PID keep the vehicle oriented toward the target. A predicted yaw sequence keeps translational optimization a convex quadratic program.</p><span class="method-tag">Decoupled heading regulation</span></div></li>
+        <li><span class="step-index">04</span><div><h3>Fuse motion hypotheses</h3><p>Stationary and constant-velocity models compete through historical multi-step prediction errors. Adaptive weights combine them inside the MPC horizon.</p><span class="method-tag">Adaptive model-fusion MPC</span></div></li>
+      </ol>
+    </div>
+    <div class="method-detail"><div class="detail-heading"><span class="small-label">Perception</span><h3>Depth should come from the target.</h3><p>Background pixels and stereo mismatches can distort bounding-box depth. The target-depth mask selects a more consistent set of pixels, with temporal recovery when needed.</p></div><div class="mask-figures">
+      <figure class="paper-figure"><button class="figure-button" data-zoom="assets/figures/fig3aa.png" data-caption="Normal-frame target-depth mask · Figure 3(a)" aria-label="Enlarge normal-frame mask pipeline"><img src="assets/figures/fig3aa.png" alt="Normal-frame pipeline showing color mask, disparity mask and final target-depth mask." loading="lazy" width="3320" height="1220"></button><figcaption><span>Figure 3(a)</span> Normal-frame target-depth masking.</figcaption></figure>
+      <figure class="paper-figure"><button class="figure-button" data-zoom="assets/figures/fig3bbb.png" data-caption="Temporal mask recovery · Figure 3(b)" aria-label="Enlarge temporal recovery pipeline"><img src="assets/figures/fig3bbb.png" alt="Temporal recovery adds reliable pixels when the current color and disparity overlap is incomplete." loading="lazy" width="3320" height="1220"></button><figcaption><span>Figure 3(b)</span> Recovery from incomplete overlap.</figcaption></figure>
+    </div></div>
+    <div class="method-detail adaptive-detail"><div class="detail-heading"><span class="small-label">Prediction</span><h3>A moving target can stop.<br>The model should respond.</h3><p>Rather than committing to one motion hypothesis, AFMPC evaluates past predictions and updates the balance between stationary and constant-velocity models.</p><p>Its translational controller uses the fused prediction with force and force-rate limits. The hardware trials include a deliberate move-to-stop transition.</p><a class="text-link" href="#control-results">See the controller comparison <span aria-hidden="true">↓</span></a></div><figure class="paper-figure fusion-figure"><button class="figure-button" data-zoom="assets/figures/fig4_prediction_error_samples.png" data-caption="Historical prediction-error samples · Figure 4" aria-label="Enlarge prediction-error selection diagram"><img src="assets/figures/fig4_prediction_error_samples.png" alt="Historical multi-step prediction errors selected to update the model-fusion weights." loading="lazy" width="5092" height="4072"></button><figcaption><span>Figure 4</span> Historical errors inform the current model weights.</figcaption></figure></div>
+  </section>
+  <section class="section demo-section" id="demo" aria-labelledby="demo-heading">
+    <div class="demo-layout"><div class="section-heading"><p class="eyebrow">03 / In the water</p><h2 id="demo-heading">See the system in action.</h2><p class="section-intro">From stereo observations to closed-loop following. Watch the complete demonstration or explore a specific experiment.</p></div>
+    <div class="demo-player"><div class="video-tabs" role="tablist" aria-label="Choose demonstration video">
+      <button role="tab" aria-selected="true" aria-controls="demo-panel" id="tab-full" data-video="full">Full demo <span>02:59</span></button>
+      <button role="tab" aria-selected="false" aria-controls="demo-panel" id="tab-yaw" data-video="yaw" tabindex="-1">Yaw regulation <span>00:10</span></button>
+      <button role="tab" aria-selected="false" aria-controls="demo-panel" id="tab-fusion" data-video="fusion" tabindex="-1">Model fusion <span>00:31</span></button>
+      <button role="tab" aria-selected="false" aria-controls="demo-panel" id="tab-pool" data-video="pool" tabindex="-1">Pool tracking <span>00:08</span></button>
+    </div>
+    <div id="demo-panel" role="tabpanel" aria-labelledby="tab-full" tabindex="0">
+      <div class="video-shell"><video id="demo-video" controls playsinline preload="metadata" poster="assets/video/demo-poster.jpg" aria-label="Full AFMPC demonstration" aria-describedby="video-description"><source src="assets/video/demo-full.mp4" type="video/mp4">Your browser does not support embedded video. <a href="assets/video/demo-full.mp4">Download the demonstration.</a></video></div>
+      <div class="video-caption"><p id="video-description">Complete demonstration · motivation, perception, adaptive control and real-pool experiments. Original narration and playback-speed annotations are preserved.</p><a id="video-download" href="assets/video/demo-full.mp4" download>Download video <span aria-hidden="true">↗</span></a></div>
+    </div>
+    <details class="demo-guide"><summary>What to look for in the demo <span aria-hidden="true">+</span></summary><div><p><strong>00:04–01:35 · The approach.</strong> Reliable target depth is extracted before relative-state estimation and adaptive prediction.</p><p><strong>01:36–02:07 · Perception and yaw.</strong> Mask comparisons and a simulation ablation show the role of each part.</p><p><strong>02:08–02:59 · Pool validation.</strong> Fixed and fused models are compared as the target moves and stops, followed by real tracking views.</p></div></details>
+    </div></div>
+  </section>
+  <section class="experiment-band" id="results" aria-labelledby="results-heading"><div class="section">
+    <div class="section-heading"><p class="eyebrow">04 / Experimental evidence</p><h2 id="results-heading">Measured in replay.<br>Validated in the pool.</h2><p class="section-intro">The evaluation combines 12 recorded underwater videos, a Unity simulation ablation and controlled physical experiments with an eight-thruster AUV.</p></div>
+    <div class="metric-strip"><div><strong>98.40<span>%</span></strong><p>Median valid-frame rate</p><small>Full target-depth mask · 12-video evaluation</small></div><div><strong>4.07<span> cm</span></strong><p>Forward tracking MAE</p><small>AFMPC · 20-second pool trial</small></div><div><strong>8.87<span> cm</span></strong><p>P95 forward tracking error</p><small>AFMPC · the same pool trial</small></div></div>
+    <figure class="paper-figure tracking-sequence"><button class="figure-button" data-zoom="assets/figures/fig7.png" data-caption="Closed-loop tracking at 0, 3, 6 and 9 seconds · Figure 5" aria-label="Enlarge real-pool tracking sequence"><img src="assets/figures/fig7.png" alt="Real-pool target-following sequence: onboard target detections and overhead robot views at 0, 3, 6 and 9 seconds." loading="lazy" width="2169" height="725"></button><figcaption><span>Figure 5</span> Closed-loop tracking of a fish-shaped target. Onboard observations above; overhead views below.</figcaption></figure>
+    <div class="experiment-subsection" id="perception-results"><div class="result-heading"><div><span class="small-label">Replay evaluation · Paper Table II</span><h3>Reliable depth selection.</h3></div><p>Four static-disturbance and eight dynamic sequences use the same inputs and validity rules. Values are medians of per-video metrics; output filtering is disabled for this comparison.</p></div>
+      <figure class="paper-figure mask-comparison"><button class="figure-button" data-zoom="assets/figures/fig5a_mask_sample1.png" data-caption="Representative target-mask comparison · Figure 7" aria-label="Enlarge mask comparison"><img src="assets/figures/fig5a_mask_sample1.png" alt="Comparison of Ours-T, Ours-S, disparity-only, bounding-box, GrabCut and MOG2 target masks." loading="lazy" width="1200" height="221"></button><figcaption><span>Figure 7</span> Representative target masks from the replay evaluation.</figcaption></figure>
+      <div class="table-wrap" role="region" aria-label="Target-depth masking results, scroll horizontally on small screens" tabindex="0"><table><caption>Target-depth masking · 12-video macro-medians</caption><thead><tr><th scope="col">Method</th><th scope="col">Valid frames ↑<span>%</span></th><th scope="col">Median depth IQR ↓<span>m</span></th><th scope="col">P95 depth IQR ↓<span>m</span></th><th scope="col">P95 depth change ↓<span>m</span></th><th scope="col">Mask time ↓<span>ms / frame</span></th></tr></thead><tbody>
+      <tr class="highlight-row"><th scope="row">Ours-T <small>Full mask</small></th><td>98.40</td><td>0.0150</td><td>0.0592</td><td>0.0449</td><td>5.92</td></tr>
+      <tr><th scope="row">Ours-S <small>No temporal recovery</small></th><td>98.19</td><td>0.0152</td><td>0.0593</td><td>0.0452</td><td>5.15</td></tr>
+      <tr><th scope="row">Ours-D <small>Disparity only</small></th><td>98.21</td><td>0.0304</td><td>0.1325</td><td>0.0879</td><td>0.24</td></tr>
+      <tr><th scope="row">Bounding box</th><td>28.91</td><td>0.2435</td><td>0.9383</td><td>0.7161</td><td>0.41</td></tr>
+      <tr><th scope="row">GrabCut</th><td>28.76</td><td>0.2443</td><td>1.0025</td><td>0.7099</td><td>178.50</td></tr>
+      <tr><th scope="row">MOG2</th><td>30.73</td><td>0.3616</td><td>0.9079</td><td>0.1121</td><td>7.95</td></tr>
+      </tbody></table></div><p class="table-note">IQR describes depth dispersion, not ground-truth depth error. Timing covers the masking module only, not the complete perception or control pipeline.</p>
+      <details class="additional-results"><summary>Masking + filtering: temporal continuity <span aria-hidden="true">+</span></summary><p>Paper Table I · P95 frame-to-frame changes, macro-medians over the same 12 videos.</p><div class="table-wrap" role="region" aria-label="Filtering continuity results" tabindex="0"><table><thead><tr><th scope="col">Configuration</th><th scope="col">Depth change<span>m</span></th><th scope="col">Horizontal center<span>px</span></th><th scope="col">Vertical center<span>px</span></th><th scope="col">LOS angle<span>deg</span></th></tr></thead><tbody><tr><th scope="row">Bounding box + raw</th><td>0.7161</td><td>5.350</td><td>4.250</td><td>0.5667</td></tr><tr><th scope="row">Target-depth mask + raw</th><td>0.0449</td><td>5.350</td><td>4.250</td><td>0.5667</td></tr><tr class="highlight-row"><th scope="row">Target-depth mask + filters</th><td>0.0264</td><td>5.175</td><td>3.293</td><td>0.4896</td></tr></tbody></table></div></details>
+    </div>
+    <div class="experiment-subsection" id="control-results"><div class="result-heading"><div><span class="small-label">Physical experiment · Paper Table III</span><h3>Following through a change in motion.</h3></div><p>The target travels 200 cm over 15 seconds, then stops for 5 seconds. All controllers share the perception front end and reference following distance.</p></div>
+      <div class="control-layout"><figure class="paper-figure"><button class="figure-button" data-zoom="assets/figures/fig8_controller_comparison.png" data-caption="Physical controller comparison · Figure 8" aria-label="Enlarge controller comparison plots"><img src="assets/figures/fig8_controller_comparison.png" alt="Forward-position errors over time: fusion versus fixed models, and fusion versus PID and sliding-mode control." loading="lazy" width="1800" height="1534"></button><figcaption><span>Figure 8</span> The paper’s recorded forward-position error traces.</figcaption></figure><div>
+      <div class="table-wrap" role="region" aria-label="Controller tracking results" tabindex="0"><table><caption>Absolute forward-position error · cm</caption><thead><tr><th scope="col">Controller</th><th scope="col">MAE ↓</th><th scope="col">P95 ↓</th><th scope="col">Max ↓</th></tr></thead><tbody>
+      <tr class="highlight-row"><th scope="row">AFMPC <small>Fusion model</small></th><td><strong>4.07</strong></td><td><strong>8.87</strong></td><td>18.78</td></tr><tr><th scope="row">Fixed model 1 <small>Stationary</small></th><td>5.28</td><td>13.98</td><td>27.35</td></tr><tr><th scope="row">Fixed model 2 <small>Moving</small></th><td>7.39</td><td>12.47</td><td>24.31</td></tr><tr><th scope="row">PID</th><td>5.23</td><td>11.81</td><td>20.59</td></tr><tr><th scope="row">SMC</th><td>6.84</td><td>11.45</td><td><strong>14.67</strong></td></tr>
+      </tbody></table></div><p class="result-takeaway">AFMPC reports the lowest MAE and P95 in this comparison. SMC has the lowest maximum error.</p><p class="table-note">These are forward body-axis errors from the reported 20-second pool trial, not 3D errors or averages over multiple trials.</p></div></div>
+    </div>
+    <div class="experiment-subsection yaw-section"><div><span class="small-label">Simulation ablation · Paper Figure 6</span><h3>Heading regulation matters.</h3><p>In a rectangular-target simulation, adding yaw regulation reduces the mean 3D position-error norm from <strong>4.21 cm to 3.22 cm</strong>.</p><p class="table-note">0.75 m × 0.75 m trajectory at approximately 0.15 m/s. This simulation metric is distinct from the physical forward-axis tracking results above.</p></div><figure class="paper-figure"><button class="figure-button" data-zoom="assets/figures/fig6_rectangle_sim_error.png" data-caption="Yaw-regulation ablation in simulation · Figure 6" aria-label="Enlarge yaw-regulation ablation"><img src="assets/figures/fig6_rectangle_sim_error.png" alt="Simulation plot comparing 3D tracking error with and without yaw control." loading="lazy" width="1930" height="960"></button></figure></div>
+    <aside class="scope-note"><span class="small-label">Evaluation scope</span><p>Validated in video replay, Unity simulation and a controlled 4 m × 2 m × 1 m pool. Disparity refinement, sustained observation loss and open-water generalization remain directions for future work.</p></aside>
+  </div></section>
+  <section class="section citation-section" id="citation" aria-labelledby="citation-heading"><div class="citation-heading"><div><p class="eyebrow">05 / Reference</p><h2 id="citation-heading">The paper &amp; the team.</h2><p>For the full derivation, protocols and discussion, see the <a href="https://arxiv.org/abs/2609.20731" target="_blank" rel="noopener noreferrer">paper on arXiv</a>.</p></div><div class="citation-actions"><button id="copy-citation" class="button button-outline">Copy BibTeX <span aria-hidden="true">⧉</span></button><a class="text-link" href="afmpc.bib" download>Download .bib ↓</a></div></div>
+<div class="publication-info"><p class="paper-title">Underwater Visual Target Tracking with Target-Specific Depth Estimation and Adaptive Model-Fusion Predictive Control</p>
+    <div class="authors" aria-label="Authors">
+      <span>Yuheng Zhou<sup>1</sup></span><span>Haiyang Cheng<sup>1</sup></span><span>Yanqi Feng<sup>1</sup></span><span>Pangkit Fong<sup>1</sup></span><span>Mei Xuan Lee<sup>2</sup></span><span>Marcus Gee<sup>3</sup></span><span>Chongrong Fang<sup>1</sup></span><span>Jianping He<sup>1</sup></span>
+    </div>
+    <div class="affiliations"><span><sup>1</sup> Shanghai Jiao Tong University</span><span><sup>2</sup> University of Toronto</span><span><sup>3</sup> University of Calgary</span></div>
+<p class="preprint">arXiv preprint · September 2026</p><a class="text-link" href="https://arxiv.org/abs/2609.20731" target="_blank" rel="noopener noreferrer">Read the paper ↗</a><a class="text-link" href="https://arxiv.org/pdf/2609.20731" target="_blank" rel="noopener noreferrer">Download PDF ↗</a></div>
+    <pre class="bibtex" tabindex="0" aria-label="BibTeX citation"><code id="bibtex">@misc{zhou2026underwatervisualtargettracking,
+  title = {Underwater Visual Target Tracking with Target-Specific Depth
+           Estimation and Adaptive Model-Fusion Predictive Control},
+  author = {Yuheng Zhou and Haiyang Cheng and Yanqi Feng and Pangkit Fong
+            and Mei Xuan Lee and Marcus Gee and Chongrong Fang and Jianping He},
+  year = {2026},
+  eprint = {2609.20731},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.RO},
+  doi = {10.48550/arXiv.2609.20731},
+  url = {https://arxiv.org/abs/2609.20731}
+}</code></pre><p id="copy-status" class="copy-status" role="status" aria-live="polite"></p>
+  </section>
+</main>
+<footer class="footer"><a class="footer-logo" href="#top">AFMPC</a><p>Underwater visual target tracking <span>·</span> 2026</p><a href="#top">Back to the surface ↑</a></footer>
+<dialog id="figure-dialog" class="figure-dialog" aria-label="Enlarged paper figure"><div class="dialog-top"><p id="figure-caption"></p><a id="figure-original" target="_blank" rel="noopener noreferrer">Full resolution ↗</a><button class="icon-button" id="close-figure" aria-label="Close enlarged figure">×</button></div><div class="dialog-image"><img id="enlarged-figure" alt=""></div></dialog>
+</body>
+</html>
